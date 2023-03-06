@@ -3,11 +3,10 @@
 
 name: Publish
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
-    types: [closed]
-    branches:
-      - development
-      - main
+    branches: [ "*" ]
 
 jobs:
   publish:
