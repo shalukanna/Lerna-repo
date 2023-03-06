@@ -4,7 +4,8 @@
   },
   "name": "Lerna-mono-repo",
   "version":"1.0.0",
-  "workspaces": [
+  "npmClient": "yarn"
+  "useWorkspaces":"true"[
     "packages/*"
   ],
   "scripts":{
