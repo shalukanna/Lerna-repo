@@ -1,18 +1,16 @@
 {
   "devDependencies": {
-    "lerna": "^6.5.1"
+    "lerna": "6.5.1"
   },
   "name": "Lerna-mono-repo",
-  "version":"1.0.0",
-  "npmClient": "yarn"
-  "useWorkspaces":"true"[
+  "version":"1.0.1",
+  "workspaces": [
     "packages/*"
   ],
   "scripts":{
     "start":"lerna run start",
     "test":"lerna run test",
-    "new-version":"lerna version --conventional-commits --yes",
-    "diff":"lerna diff"
+    "conventionalCommits": true
   }
 }
 
