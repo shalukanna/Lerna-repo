@@ -1,37 +1,52 @@
 # This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
-name: Publish
+name: Lerna Monorepo CI
+
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "*" ]
+    branches:
+      - main
 
 jobs:
-  publish:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: "Checkout"
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: "Use NodeJS 14"
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
 
-    - name: "Version and publish" # Interesting step
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config user.name "${{ github.actor }}"
-        git config user.email "${{ github.actor}}@users.noreply.github.com"
-        if [ ${{ github.base_ref }} = development ]; then
-          npx lerna version --conventional-commits --conventional-prerelease --preid beta --yes
-        else
-          npx lerna version --conventional-commits --conventional-graduate --yes
-        fi
-        npx lerna publish from-git --yes
+      - name: Install Lerna
+        run: npm install --global lerna
+
+      - name: Install dependencies and link packages
+        run: |
+          lerna bootstrap
+          lerna link
+
+      - name: Build frontend and backend
+        run: |
+          cd packages/reactapp
+          npm run build
+          cd ../backend
+          npm run build
+
+      - name: Test frontend and backend
+        run: |
+          cd packages/reactapp
+          npm run test
+          cd ../backend
+          npm run test
+
+      - name: Publish updates
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
+        run: |
+          lerna version --conventional-commits --yes
+          lerna publish from-git --yes --no-git-tag-version --no-push --no-verify-access --registry=https://registry.npmjs.org/ -a $NODE_AUTH_TOKEN
